@@ -1,0 +1,7 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+
+# Source PDF is excluded from the public repository to avoid redistributing
+# the official document. Keep it locally and regenerate docs with the script.
+*.pdf
