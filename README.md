@@ -16,6 +16,16 @@
 
 - [구조화 JSON 카탈로그](data/kiwoom-api-catalog.json)
 
+## 간단 API 테스트
+
+프로젝트 루트의 `.env`에 `KIWOOM_APP_KEY`, `KIWOOM_APP_SECRET_KEY`를 둔 뒤 실행합니다.
+
+```bash
+uv run python -m kiwoom_rest_api.kiwoom_smoke --stock-code 005930
+```
+
+기본값은 운영 도메인(`https://api.kiwoom.com`)입니다. 모의투자 도메인을 쓰려면 `--mock`을 붙입니다.
+
 ## 재생성
 
 프로젝트 루트에 원본 PDF를 둔 뒤 실행합니다.
