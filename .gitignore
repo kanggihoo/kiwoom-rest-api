@@ -1,6 +1,10 @@
 .DS_Store
 __pycache__/
 *.py[cod]
+.pytest_cache/
+.venv/
+node_modules/
+.next/
 
 # Source PDF is excluded from the public repository to avoid redistributing
 # the official document. Keep it locally and regenerate docs with the script.
