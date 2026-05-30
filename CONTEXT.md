@@ -1,52 +1,98 @@
-# Context
+# Upbit Dashboard Context
 
-## Project
+This context defines the project language for the Upbit realtime monitoring dashboard MVP. The active application work is the Upbit dashboard; the Kiwoom REST API material in this repository remains documentation reference material.
 
-This repository contains Kiwoom REST API documentation and an Upbit realtime monitoring dashboard MVP.
+## Language
 
-The active application work is the Upbit dashboard under `apps/`.
+### Market Data
 
-## Upbit Dashboard Goal
+**Quotation data**:
+Public Upbit market data that does not require API key authentication.
+_Avoid_: Exchange data, account data, private data
 
-Build a local-first realtime monitoring dashboard for public Upbit market data. The MVP is for market observation, not trading execution.
+**Market**:
+An Upbit trading pair such as `KRW-BTC`.
+_Avoid_: Coin, ticker
 
-## In Scope
+**KRW Market**:
+A **Market** whose quote currency is KRW.
 
-- Public Upbit quotation data.
-- KRW market monitoring.
-- Realtime ticker, trade, orderbook, candle, and alert events.
-- FastAPI backend process memory for MVP state.
-- Next.js frontend dashboard UI.
-- Next.js Route Handler as REST BFF.
-- Direct browser connection to the FastAPI WebSocket endpoint.
+**Selected Market**:
+The **Market** currently shown in the dashboard detail area.
+_Avoid_: Current coin, selected ticker
 
-## Out of Scope
+**Market List**:
+Dashboard list of **Markets** with latest summary values.
+_Avoid_: Watchlist, favorites
 
-- Upbit API key authentication.
-- Actual orders.
-- Login and user accounts.
-- DB and Redis for the MVP.
-- Deployment.
-- Personalized watchlists or alert settings.
+### Realtime Events
 
-## Architecture Terms
+**Event envelope**:
+WebSocket message shape with `type` and `data`.
 
-- **Frontend**: the Next.js app in `apps/web`.
-- **Backend**: the FastAPI app in `apps/backend`.
-- **BFF**: Next.js Route Handlers that proxy browser REST calls to FastAPI.
-- **MarketState**: backend in-memory state for latest market snapshots.
-- **Snapshot**: REST response containing the latest backend-held market state.
-- **Event envelope**: WebSocket message shape with a `type` and `data`.
-- **Ticker event**: realtime current-price update.
-- **Detail subscription**: selected-market stream for trade, orderbook, and candle data.
-- **Alert event**: backend-generated market movement notification.
+**Ticker event**:
+Realtime current-price update for a **Market**.
 
-## Key Decisions
+**Trade event**:
+Realtime execution update for a **Selected Market**.
 
-- Keep frontend and backend as separate apps under `apps/`.
-- Do not put root `package.json`, root `pnpm-workspace.yaml`, or root Upbit `pyproject.toml` in the repository root.
-- Use the root `Makefile` only as a local command entry point.
-- Use `pnpm` for frontend dependencies.
-- Use `uv` for backend dependencies and virtualenv management.
-- Use backend process memory for MVP state.
-- Use docs and Pydantic/OpenAPI contracts before adding shared packages.
+**Orderbook event**:
+Realtime bid/ask depth update for a **Selected Market**.
+
+**Candle event**:
+OHLCV update for a **Market** and candle unit.
+
+**Alert event**:
+Backend-generated market movement notification derived from **Quotation data**.
+_Avoid_: Personal alert, user alert, notification setting
+
+### Dashboard State
+
+**MarketState**:
+Backend-held runtime view of latest market data and active detail subscriptions.
+
+**Snapshot**:
+REST response containing the latest backend-held market state.
+
+**Detail subscription**:
+Subscription for selected-market **Trade events**, **Orderbook events**, and **Candle events** shared by clients watching the same **Selected Market**.
+
+### Interface Boundary
+
+**BFF**:
+Browser-facing REST boundary that forwards dashboard REST requests to the backend API.
+_Avoid_: Controller, API controller
+
+**BFF Route Handler**:
+Next.js Route Handler implementing a **BFF** REST endpoint.
+_Avoid_: Controller
+
+**Order form**:
+Disabled dashboard UI surface that previews a future trading interaction.
+_Avoid_: Trading form, order execution
+
+## Relationships
+
+- A **KRW Market** is a **Market** whose quote currency is KRW.
+- The **Market List** shows many **Markets** using **Ticker events**.
+- A **Selected Market** has **Trade events**, **Orderbook events**, and **Candle events**.
+- A **Detail subscription** can be shared by one or more clients watching the same **Selected Market**.
+- A **Snapshot** is read from **MarketState**.
+- An **Alert event** is derived from **Quotation data**, not user-specific alert settings.
+- A **BFF Route Handler** belongs to the REST path, not the realtime WebSocket path.
+- The **Order form** appears in the MVP UI but does not create orders.
+
+## Example Dialogue
+
+> **Dev:** "When a user selects `KRW-BTC`, do we create one **Detail subscription** per client?"
+> **Domain expert:** "No. A **Detail subscription** is shared by clients watching the same **Selected Market**."
+>
+> **Dev:** "Should the **Order form** submit an order during the MVP?"
+> **Domain expert:** "No. The MVP uses **Quotation data** only; the **Order form** is disabled UI."
+
+## Flagged Ambiguities
+
+- "Controller" should not be used for Next.js REST endpoints in this project; use **BFF Route Handler**.
+- "Order form" means disabled UI only in the MVP, not real or simulated order execution.
+- "Alert" means an **Alert event**, not a user-configured personal alert.
+- "Watchlist" should not be used for the full right-side market table; use **Market List**.

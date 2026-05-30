@@ -17,4 +17,10 @@ Each ADR should include:
 - Decision
 - Consequences
 
-No ADRs have been recorded yet.
+Recorded ADRs:
+
+- [0001-root-local-command-entrypoint.md](./0001-root-local-command-entrypoint.md)
+- [0002-bff-upstream-error-handling.md](./0002-bff-upstream-error-handling.md)
+- [0003-rest-bff-and-direct-websocket.md](./0003-rest-bff-and-direct-websocket.md)
+- [0004-process-memory-for-mvp-state.md](./0004-process-memory-for-mvp-state.md)
+- [0005-quotation-only-mvp-boundary.md](./0005-quotation-only-mvp-boundary.md)
