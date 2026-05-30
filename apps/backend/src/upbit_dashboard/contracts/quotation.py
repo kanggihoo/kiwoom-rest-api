@@ -1,3 +1,9 @@
+"""Upbit 시세/체결/호가 데이터 계약.
+
+이 모듈은 내부 비즈니스에서 공통으로 쓰는 도메인 모델을 정의합니다.
+각 모델은 Upbit 원시 데이터의 필드명을 API 정책에 맞춰 매핑해 사용합니다.
+"""
+
 from datetime import datetime
 from enum import StrEnum
 from typing import Literal
@@ -6,16 +12,19 @@ from pydantic import BaseModel, Field
 
 
 class StreamType(StrEnum):
+    # 실시간 데이터는 스냅샷/실시간 상태로 구분된다.
     SNAPSHOT = "SNAPSHOT"
     REALTIME = "REALTIME"
 
 
 class AskBid(StrEnum):
+    # ASK/BID는 체결이 어느 쪽 주문 라인에서 발생했는지 나타낸다.
     ASK = "ASK"
     BID = "BID"
 
 
 class CandleUnit(StrEnum):
+    # 캔들 단위는 REST/일반 조회에서 통용되는 전체 집합이다.
     ONE_MINUTE = "1m"
     FIVE_MINUTES = "5m"
     FIFTEEN_MINUTES = "15m"
@@ -26,6 +35,7 @@ class CandleUnit(StrEnum):
 
 
 class TickerData(BaseModel):
+    # 티커 상태 스냅샷/업데이트를 위한 핵심 가격·거래량 모델
     market: str = Field(description="Market 코드. Upbit ticker.code 기준.")
     opening_price: float = Field(
         serialization_alias="openingPrice", description="시가. Upbit ticker.opening_price 기준."
@@ -69,6 +79,7 @@ class TickerData(BaseModel):
 
 
 class TradeData(BaseModel):
+    # 체결 1건의 정규화된 형태
     market: str = Field(description="Market 코드. Upbit trade.code 기준.")
     trade_price: float = Field(
         serialization_alias="tradePrice", description="체결 가격. Upbit trade.trade_price 기준."
@@ -95,6 +106,7 @@ class TradeData(BaseModel):
 
 
 class OrderbookUnit(BaseModel):
+    # 호가 1단위의 가격/수량 페어
     ask_price: float = Field(serialization_alias="askPrice", description="매도 호가. Upbit orderbook_units.ask_price 기준.")
     bid_price: float = Field(serialization_alias="bidPrice", description="매수 호가. Upbit orderbook_units.bid_price 기준.")
     ask_size: float = Field(serialization_alias="askSize", description="매도 잔량. Upbit orderbook_units.ask_size 기준.")
@@ -102,6 +114,7 @@ class OrderbookUnit(BaseModel):
 
 
 class OrderbookData(BaseModel):
+    # 호가창 전체 요약 + 레벨 단위 호가 목록
     market: str = Field(description="Market 코드. Upbit orderbook.code 기준.")
     total_ask_size: float = Field(
         serialization_alias="totalAskSize", description="매도 총 잔량. Upbit orderbook.total_ask_size 기준."
@@ -120,6 +133,7 @@ class OrderbookData(BaseModel):
 
 
 class Candle(BaseModel):
+    # 기간봉(OHLCV) 정규화 모델, 정렬이나 구간 계산의 기본 단위로 사용
     candle_date_time_utc: str = Field(
         serialization_alias="candleDateTimeUtc", description="캔들 기준 시각 UTC. Upbit candle.candle_date_time_utc 기준."
     )

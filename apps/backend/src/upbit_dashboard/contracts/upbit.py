@@ -1,9 +1,15 @@
+"""Upbit WebSocket 원시 메시지 계약.
+
+아직 내부 계약으로 변환되기 전, 외부 수신 데이터 형식을 여기서 먼저 파싱/검증한다.
+"""
+
 from typing import Literal
 
 from pydantic import BaseModel, Field
 
 
 class UpbitTickerMessage(BaseModel):
+    # Upbit이 보내는 ticker 이벤트 1종에 대한 최소 필수 스키마
     type: Literal["ticker"] = Field(description="Upbit WebSocket 데이터 항목. ticker.")
     code: str = Field(description="Upbit Market 코드. 예: KRW-BTC.")
     opening_price: float = Field(description="시가. Upbit ticker.opening_price.")
