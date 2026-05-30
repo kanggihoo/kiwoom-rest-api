@@ -55,35 +55,55 @@ FastAPI WebSocket: ws://localhost:8000/ws
 
 ## Phase 1. API 이벤트 계약 정의
 
-목표: 프론트와 백엔드가 주고받을 REST/WebSocket 메시지 형태를 먼저 고정한다.
+목표: 실제 Upbit 연결 전에 프론트와 백엔드가 주고받을 REST/WebSocket 메시지 형태를 Pydantic 모델, TypeScript 타입, 테스트로 고정한다.
+
+근거 문서:
+
+- `docs/superpowers/specs/2026-05-30-phase-1-api-contracts-design.md`
+- `docs/adr/0006-api-contract-envelope-and-model-source.md`
+- `docs/upbit/api/websocket/ticker.md`
+- `docs/upbit/api/websocket/trade.md`
+- `docs/upbit/api/websocket/orderbook.md`
+- `docs/upbit/api/websocket/candle.md`
+- `docs/upbit/api/quotation/candles.md`
+- `docs/upbit/api/rate-limits.md`
+- `docs/upbit/api/rest-api-guide.md`
+- `docs/upbit/api/websocket-guide.md`
 
 작업:
 
-- FastAPI Pydantic 모델 정의
-- WebSocket event envelope 정의
-- ticker, trade, orderbook, candle, alert 이벤트 타입 정의
-- REST 응답 스키마 정의
+- 백엔드 `apps/backend/src/upbit_dashboard/contracts/` 패키지 추가
+- REST 성공/에러 envelope Pydantic 모델 정의
+- WebSocket event envelope Pydantic 모델 정의
+- `ticker:update`, `trade:update`, `orderbook:update`, `candle:update`, `alert:new` 이벤트 data 모델 정의
+- `markets:list`, `market-state:snapshot`, `candles:list` REST response 모델 정의
+- Upbit WebSocket ticker 원본 모델 `UpbitTickerMessage` 정의
+- `UpbitTickerMessage -> TickerData` mapper 정의
+- 각 Pydantic 필드에 `serialization_alias`와 `description` 명시
+- 프론트 `apps/web/src/lib/contracts/` TypeScript 타입 정의
+- 400/422, 418/429, Upbit upstream error를 분리한 error contract 정의
+- Pydantic alias, description, validation, mapper, error mapping 테스트 작성
 
-이벤트 예:
+계약 정책:
 
-```json
-{
-  "type": "ticker:update",
-  "data": {
-    "market": "KRW-BTC",
-    "tradePrice": 108359000,
-    "signedChangePrice": -106000,
-    "signedChangeRate": -0.001,
-    "accTradePrice24h": 139663338391
-  }
-}
-```
+- Python 내부 필드명은 snake_case를 사용한다.
+- JSON/TypeScript 필드명은 camelCase를 사용한다.
+- REST 성공/실패 응답은 `type`, `timestamp`, `data` envelope를 사용한다.
+- Backend -> Frontend WebSocket 이벤트도 `type`, `timestamp`, `data` envelope를 사용한다.
+- Envelope의 `timestamp`는 우리 서버가 응답 또는 이벤트를 만든 시각이다.
+- Upbit 원본 ms timestamp는 `timestampMs`, `tradeTimestampMs`처럼 data 내부에 보존한다.
+- `/api/snapshot`의 `tickers[]`는 `ticker:update.data`와 같은 `TickerData` 구조를 사용한다.
+- `/api/candles`는 `1m`, `5m`, `15m`, `30m`, `1h`, `1d`, `1w`를 지원한다.
+- WebSocket `candle:update`는 `1m`, `5m`, `15m`, `30m`, `1h`만 지원한다.
 
 완료 기준:
 
-- 프론트와 백엔드가 사용할 이벤트 이름이 문서화되어 있다.
-- Pydantic 모델 기준으로 REST 응답이 검증된다.
-- 프론트 타입은 이 스키마를 기준으로 작성할 수 있다.
+- 백엔드 Pydantic 계약 모델이 존재한다.
+- 프론트 TypeScript 계약 타입이 존재한다.
+- Upbit ticker raw 모델과 mapper가 존재한다.
+- 계약 테스트가 통과한다.
+- 프론트 lint/build가 통과한다.
+- 실제 Upbit 연결 없이도 Phase 2에서 수신한 ticker를 `TickerData`로 변환할 준비가 끝난다.
 
 ## Phase 2. Upbit ticker 최소 연결
 

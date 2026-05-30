@@ -27,8 +27,9 @@ _Avoid_: Watchlist, favorites
 
 ### Realtime Events
 
-**Event envelope**:
-WebSocket message shape with `type` and `data`.
+**Message envelope**:
+Application message shape with `type`, `timestamp`, and `data`, used by REST responses and backend-to-frontend WebSocket events.
+_Avoid_: Raw Upbit message
 
 **Ticker event**:
 Realtime current-price update for a **Market**.
@@ -41,6 +42,14 @@ Realtime bid/ask depth update for a **Selected Market**.
 
 **Candle event**:
 OHLCV update for a **Market** and candle unit.
+
+**Candle Unit**:
+Dashboard chart interval such as `1m`, `5m`, `1h`, `1d`, or `1w`.
+_Avoid_: Upbit REST unit, Upbit WebSocket type
+
+**Realtime Candle Unit**:
+A **Candle Unit** that can be updated through a realtime **Candle event** in the MVP.
+_Avoid_: Daily candle stream, weekly candle stream
 
 **Alert event**:
 Backend-generated market movement notification derived from **Quotation data**.
@@ -76,8 +85,10 @@ _Avoid_: Trading form, order execution
 - A **KRW Market** is a **Market** whose quote currency is KRW.
 - The **Market List** shows many **Markets** using **Ticker events**.
 - A **Selected Market** has **Trade events**, **Orderbook events**, and **Candle events**.
+- REST responses and backend-to-frontend WebSocket events use a **Message envelope**.
 - A **Detail subscription** can be shared by one or more clients watching the same **Selected Market**.
 - A **Snapshot** is read from **MarketState**.
+- A **Realtime Candle Unit** is a **Candle Unit**, but not every **Candle Unit** is realtime-updatable in the MVP.
 - An **Alert event** is derived from **Quotation data**, not user-specific alert settings.
 - A **BFF Route Handler** belongs to the REST path, not the realtime WebSocket path.
 - The **Order form** appears in the MVP UI but does not create orders.
@@ -96,3 +107,4 @@ _Avoid_: Trading form, order execution
 - "Order form" means disabled UI only in the MVP, not real or simulated order execution.
 - "Alert" means an **Alert event**, not a user-configured personal alert.
 - "Watchlist" should not be used for the full right-side market table; use **Market List**.
+- "Snapshot" means the latest backend-held **MarketState**, not every REST response that returns a list.

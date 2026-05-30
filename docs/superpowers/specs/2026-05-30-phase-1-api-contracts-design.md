@@ -10,11 +10,12 @@ Phase 1이 끝나면 백엔드는 어떤 JSON을 보낼지 Pydantic 모델로 �
 
 ## 근거 문서
 
-- `CONTEXT.md`: Market, Selected Market, MarketState, Snapshot, BFF, Event envelope 용어.
+- `CONTEXT.md`: Market, Selected Market, MarketState, Snapshot, BFF, Message envelope 용어.
 - `docs/adr/0002-bff-upstream-error-handling.md`: BFF upstream 에러 처리는 공통화한다.
 - `docs/adr/0003-rest-bff-and-direct-websocket.md`: REST는 Next.js BFF, WebSocket은 FastAPI 직접 연결.
 - `docs/adr/0004-process-memory-for-mvp-state.md`: MVP 상태는 FastAPI 프로세스 메모리에 저장.
 - `docs/adr/0005-quotation-only-mvp-boundary.md`: MVP는 공개 Quotation data만 사용.
+- `docs/adr/0006-api-contract-envelope-and-model-source.md`: REST/WebSocket Message envelope와 계약 모델 기준.
 - `docs/upbit/api/quotation/trading-pairs.md`: Market 목록 REST API.
 - `docs/upbit/api/quotation/candles.md`: REST candle 단위와 요청 파라미터.
 - `docs/upbit/api/websocket/ticker.md`: ticker WebSocket 원본 필드.
@@ -89,7 +90,7 @@ REST 성공 응답은 모두 같은 envelope를 사용한다.
 
 ```json
 {
-  "type": "markets:snapshot",
+  "type": "markets:list",
   "timestamp": "2026-05-30T12:00:00+09:00",
   "data": {}
 }
@@ -99,9 +100,9 @@ REST 성공 `type`:
 
 | Route | type | 의미 |
 | --- | --- | --- |
-| `GET /api/markets` | `markets:snapshot` | Market 메타데이터 목록 |
+| `GET /api/markets` | `markets:list` | Market 메타데이터 목록 |
 | `GET /api/snapshot` | `market-state:snapshot` | 백엔드 MarketState 최신 Snapshot |
-| `GET /api/candles` | `candles:snapshot` | 특정 Market과 CandleUnit의 candle 목록 |
+| `GET /api/candles` | `candles:list` | 특정 Market과 CandleUnit의 candle 목록 |
 
 ### WebSocket 서버 이벤트
 
@@ -448,7 +449,7 @@ Phase 1은 alert 이벤트 계약만 정의한다. 실제 alert 계산은 short-
 
 ```json
 {
-  "type": "markets:snapshot",
+  "type": "markets:list",
   "timestamp": "2026-05-30T12:00:00+09:00",
   "data": {
     "markets": [
@@ -530,7 +531,7 @@ Phase 1은 alert 이벤트 계약만 정의한다. 실제 alert 계산은 short-
 
 ```json
 {
-  "type": "candles:snapshot",
+  "type": "candles:list",
   "timestamp": "2026-05-30T12:00:00+09:00",
   "data": {
     "market": "KRW-BTC",

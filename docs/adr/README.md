@@ -24,3 +24,4 @@ Recorded ADRs:
 - [0003-rest-bff-and-direct-websocket.md](./0003-rest-bff-and-direct-websocket.md)
 - [0004-process-memory-for-mvp-state.md](./0004-process-memory-for-mvp-state.md)
 - [0005-quotation-only-mvp-boundary.md](./0005-quotation-only-mvp-boundary.md)
+- [0006-api-contract-envelope-and-model-source.md](./0006-api-contract-envelope-and-model-source.md)
