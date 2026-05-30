@@ -12,6 +12,7 @@ Phase 2의 목적은 FastAPI 백엔드 코드가 실제 Upbit 공개 Quotation e
 
 - `CONTEXT.md`: Market, Quotation data, Ticker event, Message envelope 용어.
 - `docs/development-sequence.md`: Phase 2 목표와 완료 기준.
+- `docs/adr/0001-root-local-command-entrypoint.md`: repository root는 `Makefile` 기반 로컬 명령 진입점으로 사용한다.
 - `docs/adr/0003-rest-bff-and-direct-websocket.md`: REST는 Next.js BFF, WebSocket은 FastAPI 직접 연결.
 - `docs/adr/0004-process-memory-for-mvp-state.md`: MVP 상태는 FastAPI 프로세스 메모리에 저장.
 - `docs/adr/0005-quotation-only-mvp-boundary.md`: MVP는 공개 Quotation data만 사용.
@@ -37,6 +38,7 @@ Phase 2의 목적은 FastAPI 백엔드 코드가 실제 Upbit 공개 Quotation e
 - `UPBIT_WS_ENABLED=false`일 때 자동 시작 생략.
 - FastAPI 없이 실행 가능한 Upbit 연결 smoke command.
 - smoke command에서 Upbit 공개 REST API 1회 호출로 REST 접근성 확인.
+- repository root `Makefile`에서 Phase 2 실행 명령 제공.
 - 네트워크 없이 실행되는 단위 테스트.
 
 ### 제외
@@ -50,6 +52,7 @@ Phase 2의 목적은 FastAPI 백엔드 코드가 실제 Upbit 공개 Quotation e
 - selected-market trade/orderbook/candle 상세 구독.
 - Alert event 생성.
 - Redis, DB, 인증 API, 주문 API.
+- root-level `package.json`, root-level `pnpm-workspace.yaml`, root-level Upbit dashboard `pyproject.toml`.
 
 ## 설계 원칙
 
@@ -66,6 +69,33 @@ smoke command는 성공하지만 FastAPI 실행에서 실패
 ```
 
 ## 구성
+
+### `Makefile`
+
+역할:
+
+- repository root에서 Phase 2에 필요한 로컬 명령을 짧게 실행한다.
+- 실제 런타임은 각 앱 디렉터리의 도구를 사용한다.
+- backend 명령은 `cd apps/backend && ...` 형태로 `uv`를 호출한다.
+- root에 새 Node/Python workspace를 만들지 않는다.
+
+Phase 2에서 제공할 target:
+
+```makefile
+.PHONY: upbit-smoke dev-api dev-api-no-upbit test-api
+
+upbit-smoke
+	cd apps/backend && uv run python -m upbit_dashboard.tools.smoke_upbit_connection
+
+dev-api
+	cd apps/backend && uv run uvicorn upbit_dashboard.main:app --reload
+
+dev-api-no-upbit
+	cd apps/backend && UPBIT_WS_ENABLED=false uv run uvicorn upbit_dashboard.main:app --reload
+
+test-api
+	cd apps/backend && uv run pytest
+```
 
 ### `upbit_dashboard.upbit.client`
 
@@ -104,8 +134,8 @@ Phase 2에서는 callback의 기본 동작을 로그 출력으로 둔다. Phase 
 예상 실행 명령:
 
 ```bash
-cd /Users/kkh/Desktop/kiwoom-rest-api/apps/backend
-uv run python -m upbit_dashboard.tools.smoke_upbit_connection
+cd /Users/kkh/Desktop/kiwoom-rest-api
+make upbit-smoke
 ```
 
 ### `upbit_dashboard.main`
@@ -155,7 +185,7 @@ KRW-ETH
 ### smoke command
 
 ```text
-uv run python -m upbit_dashboard.tools.smoke_upbit_connection
+make upbit-smoke
   -> Upbit REST market endpoint 1회 호출
   -> Upbit WebSocket 연결
   -> ticker 구독 메시지 전송
@@ -170,7 +200,7 @@ uv run python -m upbit_dashboard.tools.smoke_upbit_connection
 ### FastAPI lifespan
 
 ```text
-uv run uvicorn upbit_dashboard.main:app --reload
+make dev-api
   -> lifespan startup
   -> UPBIT_WS_ENABLED 확인
   -> ticker runner background task 시작
@@ -322,8 +352,8 @@ Phase 2에서 필요한 설정은 최소화한다.
 명령:
 
 ```bash
-cd /Users/kkh/Desktop/kiwoom-rest-api/apps/backend
-uv run python -m upbit_dashboard.tools.smoke_upbit_connection
+cd /Users/kkh/Desktop/kiwoom-rest-api
+make upbit-smoke
 ```
 
 성공 기준:
@@ -341,8 +371,8 @@ smoke ok
 명령:
 
 ```bash
-cd /Users/kkh/Desktop/kiwoom-rest-api/apps/backend
-uv run uvicorn upbit_dashboard.main:app --reload
+cd /Users/kkh/Desktop/kiwoom-rest-api
+make dev-api
 ```
 
 성공 기준:
@@ -358,8 +388,8 @@ Upbit ticker received market=KRW-ETH ...
 명령:
 
 ```bash
-cd /Users/kkh/Desktop/kiwoom-rest-api/apps/backend
-UPBIT_WS_ENABLED=false uv run uvicorn upbit_dashboard.main:app --reload
+cd /Users/kkh/Desktop/kiwoom-rest-api
+make dev-api-no-upbit
 ```
 
 성공 기준:
@@ -380,9 +410,11 @@ Upbit ticker stream disabled by UPBIT_WS_ENABLED=false
 6. `UPBIT_WS_ENABLED` 설정 판별 함수를 작성한다.
 7. smoke command를 작성한다.
 8. FastAPI lifespan startup/shutdown에 runner background task를 연결한다.
-9. 네트워크 없는 단위 테스트를 작성한다.
-10. smoke command로 실제 Upbit REST/WS 연결을 수동 검증한다.
-11. FastAPI 실행 로그로 자동 연결을 수동 검증한다.
+9. root `Makefile`에 `upbit-smoke`, `dev-api`, `dev-api-no-upbit`, `test-api` target을 추가한다.
+10. 네트워크 없는 단위 테스트를 작성한다.
+11. `make test-api`로 단위 테스트를 실행한다.
+12. `make upbit-smoke`로 실제 Upbit REST/WS 연결을 수동 검증한다.
+13. `make dev-api` 로그로 자동 연결을 수동 검증한다.
 
 ## 완료 기준
 
@@ -391,6 +423,7 @@ Upbit ticker stream disabled by UPBIT_WS_ENABLED=false
 - 수신 ticker가 `UpbitTickerMessage` validation과 `TickerData` mapper를 통과한다.
 - FastAPI startup에서 Upbit ticker stream이 기본 자동 시작된다.
 - `UPBIT_WS_ENABLED=false`이면 FastAPI startup에서 Upbit 연결을 생략한다.
+- root `Makefile`에서 `upbit-smoke`, `dev-api`, `dev-api-no-upbit`, `test-api` target을 제공한다.
 - 연결 종료 또는 예외 발생 시 backoff 후 재연결을 시도한다.
 - 자동 테스트는 외부 네트워크 없이 통과한다.
 - Phase 3에서 `TickerData`를 `MarketState`에 저장할 수 있도록 runner 출력 경계가 명확하다.
