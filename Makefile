@@ -1,4 +1,4 @@
-.PHONY: dev dev-api dev-web health-api health-web test-api lint-web build-web
+.PHONY: dev dev-api dev-api-no-upbit dev-web health-api health-web test-api upbit-smoke lint-web build-web
 
 BACKEND_HOST ?= 0.0.0.0
 BACKEND_PORT ?= 8000
@@ -10,6 +10,12 @@ dev:
 
 dev-api:
 	uv run --directory apps/backend uvicorn upbit_dashboard.main:app --reload --host $(BACKEND_HOST) --port $(BACKEND_PORT)
+
+dev-api-no-upbit:
+	UPBIT_WS_ENABLED=false uv run --directory apps/backend uvicorn upbit_dashboard.main:app --reload --host $(BACKEND_HOST) --port $(BACKEND_PORT)
+
+upbit-smoke:
+	uv run --directory apps/backend python -m upbit_dashboard.tools.smoke_upbit_connection
 
 dev-web:
 	FASTAPI_BASE_URL=$(FASTAPI_BASE_URL) pnpm -C apps/web dev --port $(WEB_PORT)
