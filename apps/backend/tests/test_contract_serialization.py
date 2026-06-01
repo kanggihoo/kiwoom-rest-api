@@ -6,17 +6,20 @@ from pydantic import ValidationError
 from upbit_dashboard.contracts.events import (
     AlertData,
     AlertKind,
-    AskBid,
-    Candle,
     CandleUpdateData,
     CandleUpdateEvent,
     RealtimeCandleUnit,
     Severity,
+    TickerUpdateEvent,
+    TradeUpdateEvent,
+)
+from upbit_dashboard.contracts.quotation import (
+    AskBid,
+    Candle,
+    CandleUnit,
     StreamType,
     TickerData,
-    TickerUpdateEvent,
     TradeData,
-    TradeUpdateEvent,
 )
 from upbit_dashboard.contracts.rest import (
     CandlesListData,
@@ -27,7 +30,6 @@ from upbit_dashboard.contracts.rest import (
     MarketsListData,
     MarketsListResponse,
 )
-from upbit_dashboard.contracts.events import CandleUnit
 
 
 def test_ticker_update_event_serializes_with_camel_case_aliases() -> None:
@@ -226,3 +228,11 @@ def test_candles_snapshot_keeps_market_and_unit_at_data_level() -> None:
     assert dumped["data"]["candleUnit"] == "1m"
     assert "market" not in dumped["data"]["candles"][0]
     assert "candleUnit" not in dumped["data"]["candles"][0]
+
+
+def test_events_module_does_not_reexport_quotation_models() -> None:
+    import upbit_dashboard.contracts.events as events
+
+    assert not hasattr(events, "StreamType")
+    assert not hasattr(events, "CandleUnit")
+    assert not hasattr(events, "AskBid")

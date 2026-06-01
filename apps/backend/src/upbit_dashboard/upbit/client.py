@@ -5,10 +5,11 @@ import logging
 
 from websockets.asyncio.client import connect
 
-from upbit_dashboard.contracts.mappers import map_upbit_ticker_message
+from upbit_dashboard.market.catalogue import normalize_krw_market_codes
+from upbit_dashboard.upbit.mappers import map_upbit_ticker_message
+from upbit_dashboard.upbit.messages import UpbitTickerMessage
 from upbit_dashboard.contracts.quotation import TickerData
-from upbit_dashboard.contracts.upbit import UpbitTickerMessage
-from upbit_dashboard.upbit.settings import (
+from upbit_dashboard.settings import (
     DEFAULT_TICKER_MARKETS,
     DEFAULT_TICKET,
     DEFAULT_UPBIT_WS_ENDPOINT,
@@ -25,19 +26,11 @@ class UpbitWebSocketError(RuntimeError):
         self.message = message
         super().__init__(f"{name}: {message}")
 
-
-def normalize_markets(markets: Sequence[str]) -> tuple[str, ...]:
-    normalized = tuple(market.strip().upper() for market in markets if market.strip())
-    if not normalized:
-        raise ValueError("At least one Upbit Market is required.")
-    return normalized
-
-
 def build_ticker_subscription(
     markets: Sequence[str] = DEFAULT_TICKER_MARKETS,
     ticket: str = DEFAULT_TICKET,
 ) -> list[dict[str, object]]:
-    codes = list(normalize_markets(markets))
+    codes = list(normalize_krw_market_codes(markets))
     return [
         {"ticket": ticket},
         {"type": "ticker", "codes": codes},
@@ -76,8 +69,9 @@ def parse_ticker_payload(payload: bytes | str) -> TickerData:
 async def stream_tickers(
     markets: Sequence[str] = DEFAULT_TICKER_MARKETS,
     endpoint: str = DEFAULT_UPBIT_WS_ENDPOINT,
+    ticket: str = DEFAULT_TICKET,
 ) -> AsyncIterator[TickerData]:
-    subscription = build_ticker_subscription(markets)
+    subscription = build_ticker_subscription(markets, ticket=ticket)
     async with connect(endpoint, ping_interval=20, ping_timeout=20) as websocket:
         await websocket.send(json.dumps(subscription))
         logger.info("Upbit WS connected endpoint=%s", endpoint)
@@ -88,4 +82,3 @@ async def stream_tickers(
                 logger.exception("Upbit WS error payload received")
             except Exception:
                 logger.exception("Upbit WS message validation failed")
-

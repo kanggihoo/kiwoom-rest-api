@@ -1,12 +1,10 @@
-"""Upbit 원시 모델과 내부 도메인 모델 간 매핑 규칙."""
+"""Mapping rules from Upbit raw messages to application quotation contracts."""
 
 from upbit_dashboard.contracts.quotation import StreamType, TickerData
-from upbit_dashboard.contracts.upbit import UpbitTickerMessage
+from upbit_dashboard.upbit.messages import UpbitTickerMessage
 
 
 def map_upbit_ticker_message(message: UpbitTickerMessage) -> TickerData:
-    # 수신 메시지를 내부에서 사용하는 TickerData로 정규화한다.
-    # 값 이름만 다를 뿐 의미는 동일한 필드를 1:1로 이동.
     return TickerData(
         market=message.code,
         opening_price=message.opening_price,

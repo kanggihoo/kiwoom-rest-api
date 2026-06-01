@@ -1,9 +1,9 @@
 from pydantic import ValidationError
 import pytest
 
-from upbit_dashboard.contracts.events import StreamType
-from upbit_dashboard.contracts.mappers import map_upbit_ticker_message
-from upbit_dashboard.contracts.upbit import UpbitTickerMessage
+from upbit_dashboard.contracts.quotation import StreamType
+from upbit_dashboard.upbit.mappers import map_upbit_ticker_message
+from upbit_dashboard.upbit.messages import UpbitTickerMessage
 
 
 def test_upbit_ticker_message_maps_to_app_ticker_data() -> None:

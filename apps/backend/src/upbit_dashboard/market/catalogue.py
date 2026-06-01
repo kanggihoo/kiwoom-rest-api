@@ -1,5 +1,5 @@
 import re
-
+from collections.abc import Iterable
 from dataclasses import dataclass
 
 
@@ -43,3 +43,45 @@ def assert_krw_market(raw_market: str) -> MarketCode:
     if market.quote_currency != "KRW":
         raise ValueError(f"KRW 마켓이 아닙니다: {market.as_upbit_code()}")
     return market
+
+
+def normalize_market_codes(markets: Iterable[str]) -> tuple[str, ...]:
+    normalized = tuple(
+        parse_market_code(market).as_upbit_code()
+        for market in markets
+        if market.strip()
+    )
+    if not normalized:
+        raise ValueError("At least one Upbit Market is required.")
+    return normalized
+
+
+def normalize_krw_market_codes(markets: Iterable[str]) -> tuple[str, ...]:
+    normalized = tuple(
+        assert_krw_market(market).as_upbit_code()
+        for market in markets
+        if market.strip()
+    )
+    if not normalized:
+        raise ValueError("At least one KRW Market is required.")
+    return normalized
+
+
+def parse_market_code_list(
+    raw_value: str | None,
+    *,
+    default: tuple[str, ...],
+) -> tuple[str, ...]:
+    if raw_value is None or raw_value.strip() == "":
+        return default
+    return normalize_market_codes(raw_value.split(","))
+
+
+def parse_krw_market_code_list(
+    raw_value: str | None,
+    *,
+    default: tuple[str, ...],
+) -> tuple[str, ...]:
+    if raw_value is None or raw_value.strip() == "":
+        return default
+    return normalize_krw_market_codes(raw_value.split(","))

@@ -9,15 +9,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from upbit_dashboard.contracts.quotation import (
-    AskBid,
-    Candle,
-    OrderbookData,
-    CandleUnit,
-    StreamType,
-    TickerData,
-    TradeData,
-)
+from upbit_dashboard.contracts import quotation
 
 
 class RealtimeCandleUnit(StrEnum):
@@ -49,11 +41,11 @@ class CandleUpdateData(BaseModel):
     candle_unit: RealtimeCandleUnit = Field(
         serialization_alias="candleUnit", description="실시간 candle 단위. 1m, 5m, 15m, 30m, 1h만 허용."
     )
-    candle: Candle = Field(description="OHLCV candle 값.")
+    candle: quotation.Candle = Field(description="OHLCV candle 값.")
     timestamp_ms: int = Field(
         serialization_alias="timestampMs", description="Upbit candle WebSocket timestamp."
     )
-    stream_type: StreamType = Field(
+    stream_type: quotation.StreamType = Field(
         serialization_alias="streamType", description="Upbit stream_type. SNAPSHOT 또는 REALTIME."
     )
 
@@ -75,21 +67,21 @@ class TickerUpdateEvent(BaseModel):
     # 내부 상태의 ticker 갱신 이벤트
     type: Literal["ticker:update"] = Field(default="ticker:update", description="Ticker update event type.")
     timestamp: datetime = Field(description="우리 서버가 이벤트를 만든 시각.")
-    data: TickerData = Field(description="Ticker update payload.")
+    data: quotation.TickerData = Field(description="Ticker update payload.")
 
 
 class TradeUpdateEvent(BaseModel):
     # 실시간 체결 업데이트 이벤트
     type: Literal["trade:update"] = Field(default="trade:update", description="Trade update event type.")
     timestamp: datetime = Field(description="우리 서버가 이벤트를 만든 시각.")
-    data: TradeData = Field(description="Trade update payload.")
+    data: quotation.TradeData = Field(description="Trade update payload.")
 
 
 class OrderbookUpdateEvent(BaseModel):
     # 실시간 호가 업데이트 이벤트
     type: Literal["orderbook:update"] = Field(default="orderbook:update", description="Orderbook update event type.")
     timestamp: datetime = Field(description="우리 서버가 이벤트를 만든 시각.")
-    data: OrderbookData = Field(description="Orderbook update payload.")
+    data: quotation.OrderbookData = Field(description="Orderbook update payload.")
 
 
 class CandleUpdateEvent(BaseModel):
