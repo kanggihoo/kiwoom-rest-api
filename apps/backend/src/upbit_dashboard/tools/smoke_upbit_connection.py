@@ -7,6 +7,7 @@ from typing import Any
 import httpx
 
 from upbit_dashboard.contracts.quotation import TickerData
+from upbit_dashboard.logging_config import configure_logging
 from upbit_dashboard.upbit.client import stream_tickers
 from upbit_dashboard.upbit.settings import (
     DEFAULT_TICKER_MARKETS,
@@ -70,7 +71,7 @@ async def main_async() -> None:
 
 
 def main() -> None:
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+    configure_logging()
     try:
         asyncio.run(main_async())
     except Exception:
@@ -80,4 +81,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

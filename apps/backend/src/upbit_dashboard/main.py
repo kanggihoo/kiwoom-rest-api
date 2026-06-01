@@ -6,9 +6,12 @@ from collections.abc import AsyncIterator
 from fastapi import FastAPI, Request
 
 from upbit_dashboard.api.errors import DashboardApiError, make_error_response
+from upbit_dashboard.logging_config import configure_logging
 from upbit_dashboard.state.market_state import MarketState
 from upbit_dashboard.upbit.runner import run_ticker_stream
 from upbit_dashboard.upbit.settings import is_upbit_ws_enabled
+
+configure_logging()
 
 logger = logging.getLogger(__name__)
 
@@ -56,4 +59,3 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
-
