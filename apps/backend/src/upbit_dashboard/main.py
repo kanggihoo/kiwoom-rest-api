@@ -3,9 +3,10 @@ import asyncio
 import logging
 from collections.abc import AsyncIterator
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 
-from upbit_dashboard.api.errors import DashboardApiError, make_error_response
+from upbit_dashboard.api.exception_handlers import register_exception_handlers
+from upbit_dashboard.api.router import api_router
 from upbit_dashboard.logging_config import configure_logging
 from upbit_dashboard.state.market_state import MarketState
 from upbit_dashboard.upbit.runner import run_ticker_stream
@@ -42,18 +43,8 @@ def create_app() -> FastAPI:
     app.state.market_state = MarketState()
     app.state.upbit_ticker_task = None
 
-    @app.exception_handler(DashboardApiError)
-    async def api_error_handler(_: Request, exc: DashboardApiError):
-        return make_error_response(
-            code=exc.code,
-            message=exc.message,
-            details=exc.details,
-            status_code=exc.status_code,
-        )
-
-    @app.get("/health")
-    def health() -> dict[str, str]:
-        return {"status": "ok", "service": "upbit-dashboard-backend"}
+    register_exception_handlers(app)
+    app.include_router(api_router)
 
     return app
 
