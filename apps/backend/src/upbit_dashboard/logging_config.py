@@ -2,13 +2,16 @@ from __future__ import annotations
 
 import logging
 import logging.config
-import os
 from typing import Any
 
-
-DEFAULT_LOG_FORMAT = "plain"
-DEFAULT_LOG_LEVEL = "INFO"
-SUPPORTED_LOG_FORMATS = {"plain", "rich"}
+from upbit_dashboard.settings import (
+    DEFAULT_LOG_FORMAT,
+    DEFAULT_LOG_LEVEL,
+    SUPPORTED_LOG_FORMATS,
+    get_settings,
+    normalize_log_format,
+    normalize_log_level,
+)
 
 APP_LOGGERS = (
     "upbit_dashboard",
@@ -23,26 +26,15 @@ RICH_LOG_FORMAT = "%(message)s"
 
 
 def get_log_format(raw_value: str | None = None) -> str:
-    value = os.getenv("LOG_FORMAT") if raw_value is None else raw_value
-    if value is None or value.strip() == "":
-        return DEFAULT_LOG_FORMAT
-
-    normalized = value.strip().lower()
-    if normalized not in SUPPORTED_LOG_FORMATS:
-        return DEFAULT_LOG_FORMAT
-    return normalized
+    if raw_value is None:
+        return get_settings().log_format
+    return normalize_log_format(raw_value)
 
 
 def get_log_level(raw_value: str | None = None) -> str:
-    value = os.getenv("LOG_LEVEL") if raw_value is None else raw_value
-    if value is None or value.strip() == "":
-        return DEFAULT_LOG_LEVEL
-
-    normalized = value.strip().upper()
-    level_value = logging.getLevelNamesMapping().get(normalized)
-    if not isinstance(level_value, int):
-        return DEFAULT_LOG_LEVEL
-    return normalized
+    if raw_value is None:
+        return get_settings().log_level
+    return normalize_log_level(raw_value)
 
 
 def build_logging_config() -> dict[str, Any]:

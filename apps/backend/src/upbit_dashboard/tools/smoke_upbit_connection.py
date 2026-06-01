@@ -8,12 +8,15 @@ import httpx
 
 from upbit_dashboard.contracts.quotation import TickerData
 from upbit_dashboard.logging_config import configure_logging
-from upbit_dashboard.upbit.client import stream_tickers
-from upbit_dashboard.upbit.settings import (
+from upbit_dashboard.settings import (
+    DEFAULT_TICKET,
     DEFAULT_TICKER_MARKETS,
     DEFAULT_UPBIT_REST_MARKETS_URL,
+    DEFAULT_UPBIT_WS_ENDPOINT,
     SMOKE_TIMEOUT_SECONDS,
+    get_settings,
 )
+from upbit_dashboard.upbit.client import stream_tickers
 
 logger = logging.getLogger(__name__)
 
@@ -39,13 +42,19 @@ async def check_rest_market_endpoint(url: str = DEFAULT_UPBIT_REST_MARKETS_URL) 
 async def collect_required_tickers(
     markets: tuple[str, ...] = DEFAULT_TICKER_MARKETS,
     timeout_seconds: float = SMOKE_TIMEOUT_SECONDS,
+    endpoint: str = DEFAULT_UPBIT_WS_ENDPOINT,
+    ticket: str = DEFAULT_TICKET,
 ) -> dict[str, TickerData]:
     required = set(markets)
     received: dict[str, TickerData] = {}
 
     try:
         async with asyncio.timeout(timeout_seconds):
-            async for ticker in stream_tickers(markets=markets):
+            async for ticker in stream_tickers(
+                markets=markets,
+                endpoint=endpoint,
+                ticket=ticket,
+            ):
                 logger.info(
                     "ticker received market=%s tradePrice=%s streamType=%s",
                     ticker.market,
@@ -65,8 +74,14 @@ async def collect_required_tickers(
 
 
 async def main_async() -> None:
-    await check_rest_market_endpoint()
-    received = await collect_required_tickers()
+    settings = get_settings()
+    await check_rest_market_endpoint(settings.upbit_rest_markets_url)
+    received = await collect_required_tickers(
+        markets=settings.upbit_ticker_markets,
+        timeout_seconds=settings.smoke_timeout_seconds,
+        endpoint=settings.upbit_ws_endpoint,
+        ticket=settings.upbit_ticket,
+    )
     logger.info("smoke ok markets=%s", ",".join(sorted(received)))
 
 

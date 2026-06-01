@@ -8,9 +8,9 @@ from fastapi import FastAPI
 from upbit_dashboard.api.exception_handlers import register_exception_handlers
 from upbit_dashboard.api.router import api_router
 from upbit_dashboard.logging_config import configure_logging
+from upbit_dashboard.settings import get_settings
 from upbit_dashboard.state.market_state import MarketState
 from upbit_dashboard.upbit.runner import run_ticker_stream
-from upbit_dashboard.upbit.settings import is_upbit_ws_enabled
 
 configure_logging()
 
@@ -20,9 +20,18 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     ticker_task: asyncio.Task[None] | None = None
+    settings = get_settings()
 
-    if is_upbit_ws_enabled():
-        ticker_task = asyncio.create_task(run_ticker_stream())
+    if settings.upbit_ws_enabled:
+        ticker_task = asyncio.create_task(
+            run_ticker_stream(
+                markets=settings.upbit_ticker_markets,
+                endpoint=settings.upbit_ws_endpoint,
+                ticket=settings.upbit_ticket,
+                initial_backoff=settings.initial_backoff_seconds,
+                max_backoff=settings.max_backoff_seconds,
+            )
+        )
         logger.info("Upbit ticker stream background task created")
     else:
         logger.info("Upbit ticker stream disabled by UPBIT_WS_ENABLED=false")

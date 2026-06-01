@@ -6,13 +6,14 @@ import inspect
 import logging
 
 from upbit_dashboard.contracts.quotation import TickerData
-from upbit_dashboard.upbit.client import stream_tickers
-from upbit_dashboard.upbit.settings import (
+from upbit_dashboard.settings import (
     DEFAULT_TICKER_MARKETS,
+    DEFAULT_TICKET,
     DEFAULT_UPBIT_WS_ENDPOINT,
     INITIAL_BACKOFF_SECONDS,
     MAX_BACKOFF_SECONDS,
 )
+from upbit_dashboard.upbit.client import stream_tickers
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +56,7 @@ async def _sleep_or_stop(stop_event: asyncio.Event | None, delay: float) -> None
 async def run_ticker_stream(
     markets: Sequence[str] = DEFAULT_TICKER_MARKETS,
     endpoint: str = DEFAULT_UPBIT_WS_ENDPOINT,
+    ticket: str = DEFAULT_TICKET,
     on_ticker: TickerHandler = log_ticker,
     stop_event: asyncio.Event | None = None,
     initial_backoff: float = INITIAL_BACKOFF_SECONDS,
@@ -65,7 +67,7 @@ async def run_ticker_stream(
 
     while stop_event is None or not stop_event.is_set():
         try:
-            async for ticker in stream_tickers(markets=markets, endpoint=endpoint):
+            async for ticker in stream_tickers(markets=markets, endpoint=endpoint, ticket=ticket):
                 backoff = initial_backoff
                 await emit_ticker(on_ticker, ticker)
                 if stop_event is not None and stop_event.is_set():
@@ -78,4 +80,3 @@ async def run_ticker_stream(
             logger.warning("Upbit WS disconnected; reconnecting in %.1fs", backoff, exc_info=True)
             await _sleep_or_stop(stop_event, backoff)
             backoff = next_backoff(backoff, max_backoff)
-

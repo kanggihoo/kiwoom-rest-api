@@ -14,6 +14,7 @@ apps/
 
 ```bash
 uv sync --directory apps/backend
+cp apps/backend/.env.example apps/backend/.env
 make dev-api
 ```
 
@@ -28,6 +29,10 @@ Health check:
 ```bash
 make health-api
 ```
+
+`apps/backend/.env`는 백엔드 런타임 설정을 담는 로컬 전용 파일이다. shell 환경변수로 같은 이름을 지정하면 `.env` 값보다 우선한다.
+
+`BACKEND_HOST`, `BACKEND_PORT`처럼 uvicorn 실행 인자는 앱 내부 설정이 아니므로 루트 `Makefile` 변수로 조정한다.
 
 ## 프론트엔드
 
