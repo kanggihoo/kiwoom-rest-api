@@ -4,13 +4,13 @@ from upbit_dashboard.contracts.quotation import StreamType, TickerData
 from upbit_dashboard.state.market_state import MarketState
 
 
-def _ticker(market: str) -> TickerData:
+def _ticker(market: str, trade_price: float = 1.5) -> TickerData:
     return TickerData(
         market=market,
         opening_price=1.0,
         high_price=2.0,
         low_price=0.5,
-        trade_price=1.5,
+        trade_price=trade_price,
         signed_change_price=0.1,
         signed_change_rate=0.01,
         trade_volume=1.0,
@@ -37,3 +37,24 @@ def test_market_state_snapshot_tracks_latest_ticker_values() -> None:
     state.remove_ticker("krw-btc")
     assert state.get_ticker("KRW-BTC") is None
     assert state.snapshot().tickers[0].market in {"KRW-ETH"}
+
+
+def test_market_state_upsert_replaces_existing_market_ticker() -> None:
+    state = MarketState()
+
+    state.upsert_ticker(_ticker("KRW-BTC", trade_price=1.5))
+    state.upsert_ticker(_ticker("KRW-BTC", trade_price=2.5))
+
+    stored_ticker = state.get_ticker("KRW-BTC")
+    assert stored_ticker is not None
+    assert stored_ticker.trade_price == 2.5
+    assert len(state.snapshot().tickers) == 1
+
+
+def test_market_state_snapshot_uses_explicit_generated_at() -> None:
+    state = MarketState()
+    generated_at = datetime(2026, 6, 1, 3, 0, tzinfo=timezone.utc)
+
+    state.upsert_ticker(_ticker("KRW-BTC"))
+
+    assert state.snapshot(generated_at=generated_at).generated_at == generated_at

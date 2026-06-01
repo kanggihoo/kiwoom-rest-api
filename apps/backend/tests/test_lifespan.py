@@ -2,7 +2,26 @@ import asyncio
 
 from fastapi.testclient import TestClient
 
+from upbit_dashboard.contracts.quotation import StreamType, TickerData
 from upbit_dashboard.main import create_app
+
+
+def _ticker(market: str) -> TickerData:
+    return TickerData(
+        market=market,
+        opening_price=1.0,
+        high_price=2.0,
+        low_price=0.5,
+        trade_price=1.5,
+        signed_change_price=0.1,
+        signed_change_rate=0.01,
+        trade_volume=1.0,
+        acc_trade_volume_24h=2.0,
+        acc_trade_price_24h=3.0,
+        trade_timestamp_ms=1,
+        timestamp_ms=2,
+        stream_type=StreamType.REALTIME,
+    )
 
 
 def test_lifespan_skips_upbit_stream_when_disabled(monkeypatch) -> None:
@@ -50,3 +69,28 @@ def test_lifespan_passes_settings_to_upbit_stream(monkeypatch) -> None:
         assert captured_kwargs["ticket"] == "local-ticket"
         assert captured_kwargs["initial_backoff"] == 2.0
         assert captured_kwargs["max_backoff"] == 16.0
+
+
+def test_lifespan_ticker_handler_updates_market_state_and_logs(monkeypatch) -> None:
+    captured_kwargs = {}
+    logged_markets: list[str] = []
+
+    async def fake_run_ticker_stream(**kwargs) -> None:
+        captured_kwargs.update(kwargs)
+        await asyncio.Event().wait()
+
+    async def fake_log_ticker(ticker: TickerData) -> None:
+        logged_markets.append(ticker.market)
+
+    monkeypatch.setenv("UPBIT_WS_ENABLED", "true")
+    monkeypatch.setattr("upbit_dashboard.main.run_ticker_stream", fake_run_ticker_stream)
+    monkeypatch.setattr("upbit_dashboard.main.log_ticker", fake_log_ticker)
+
+    with TestClient(create_app()) as client:
+        handler = captured_kwargs["on_ticker"]
+        asyncio.run(handler(_ticker("KRW-BTC")))
+
+        stored_ticker = client.app.state.market_state.get_ticker("KRW-BTC")
+        assert stored_ticker is not None
+        assert stored_ticker.trade_price == 1.5
+        assert logged_markets == ["KRW-BTC"]
