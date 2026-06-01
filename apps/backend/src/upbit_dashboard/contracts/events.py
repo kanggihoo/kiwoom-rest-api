@@ -5,7 +5,7 @@
 
 from datetime import datetime
 from enum import StrEnum
-from typing import Literal
+from typing import Generic, Literal, TypeVar
 
 from pydantic import BaseModel, Field
 
@@ -63,36 +63,38 @@ class AlertData(BaseModel):
     created_at: datetime = Field(serialization_alias="createdAt", description="Alert 생성 시각.")
 
 
-class TickerUpdateEvent(BaseModel):
+TEventData = TypeVar("TEventData")
+
+
+class RealtimeEvent(BaseModel, Generic[TEventData]):
+    # type/timestamp/data envelope를 공통화해 이벤트 모델 중복을 제거한다.
+    type: str = Field(description="Message envelope type.")
+    timestamp: datetime = Field(description="우리 서버가 이벤트를 만든 시각.")
+    data: TEventData = Field(description="이벤트 payload.")
+
+
+class TickerUpdateEvent(RealtimeEvent[quotation.TickerData]):
     # 내부 상태의 ticker 갱신 이벤트
     type: Literal["ticker:update"] = Field(default="ticker:update", description="Ticker update event type.")
-    timestamp: datetime = Field(description="우리 서버가 이벤트를 만든 시각.")
-    data: quotation.TickerData = Field(description="Ticker update payload.")
 
 
-class TradeUpdateEvent(BaseModel):
+class TradeUpdateEvent(RealtimeEvent[quotation.TradeData]):
     # 실시간 체결 업데이트 이벤트
     type: Literal["trade:update"] = Field(default="trade:update", description="Trade update event type.")
-    timestamp: datetime = Field(description="우리 서버가 이벤트를 만든 시각.")
-    data: quotation.TradeData = Field(description="Trade update payload.")
 
 
-class OrderbookUpdateEvent(BaseModel):
+class OrderbookUpdateEvent(RealtimeEvent[quotation.OrderbookData]):
     # 실시간 호가 업데이트 이벤트
-    type: Literal["orderbook:update"] = Field(default="orderbook:update", description="Orderbook update event type.")
-    timestamp: datetime = Field(description="우리 서버가 이벤트를 만든 시각.")
-    data: quotation.OrderbookData = Field(description="Orderbook update payload.")
+    type: Literal["orderbook:update"] = Field(
+        default="orderbook:update", description="Orderbook update event type."
+    )
 
 
-class CandleUpdateEvent(BaseModel):
+class CandleUpdateEvent(RealtimeEvent[CandleUpdateData]):
     # 실시간 캔들 업데이트 이벤트
     type: Literal["candle:update"] = Field(default="candle:update", description="Candle update event type.")
-    timestamp: datetime = Field(description="우리 서버가 이벤트를 만든 시각.")
-    data: CandleUpdateData = Field(description="Candle update payload.")
 
 
-class AlertNewEvent(BaseModel):
+class AlertNewEvent(RealtimeEvent[AlertData]):
     # 새 알림 생성 이벤트
     type: Literal["alert:new"] = Field(default="alert:new", description="Alert new event type.")
-    timestamp: datetime = Field(description="우리 서버가 이벤트를 만든 시각.")
-    data: AlertData = Field(description="Alert payload.")
