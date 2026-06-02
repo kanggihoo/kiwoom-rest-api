@@ -1,0 +1,140 @@
+/* shadcn/ui Tailwind v4 bridge layer for DESIGN.md tokens.
+   Import after Tailwind and after design.tailwind.css:
+
+   @import "tailwindcss";
+   @import "./design.tailwind.css";
+   @import "./design.shadcn.css";
+
+   Keep shadcn components on semantic classes such as bg-background,
+   text-foreground, border-border, bg-primary, text-primary-foreground,
+   bg-card, and text-muted-foreground. */
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --radius: 12px;
+
+  --background: #fbfcff;
+  --foreground: #151b2d;
+  --card: #ffffff;
+  --card-foreground: #151b2d;
+  --popover: #ffffff;
+  --popover-foreground: #151b2d;
+  --primary: #006bff;
+  --primary-foreground: #ffffff;
+  --secondary: #f3f6fb;
+  --secondary-foreground: #151b2d;
+  --muted: #f3f6fb;
+  --muted-foreground: #7b8494;
+  --accent: #eaf3ff;
+  --accent-foreground: #0052cc;
+  --destructive: #f04452;
+  --destructive-foreground: #ffffff;
+  --border: #e3e8f0;
+  --input: #e3e8f0;
+  --ring: #006bff;
+
+  --chart-1: #006bff;
+  --chart-2: #1d6fff;
+  --chart-3: #f04452;
+  --chart-4: #7b8494;
+  --chart-5: #0052cc;
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #151b2d;
+  --sidebar-primary: #006bff;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #eaf3ff;
+  --sidebar-accent-foreground: #0052cc;
+  --sidebar-border: #e3e8f0;
+  --sidebar-ring: #006bff;
+}
+
+.dark {
+  --background: #11131a;
+  --foreground: #f4f7fb;
+  --card: #171a23;
+  --card-foreground: #f4f7fb;
+  --popover: #1e2230;
+  --popover-foreground: #f4f7fb;
+  --primary: #5ea2ff;
+  --primary-foreground: #11131a;
+  --secondary: #1e2230;
+  --secondary-foreground: #f4f7fb;
+  --muted: #1e2230;
+  --muted-foreground: #9aa3b2;
+  --accent: #1e2230;
+  --accent-foreground: #5ea2ff;
+  --destructive: #ff5a66;
+  --destructive-foreground: #11131a;
+  --border: #2a3040;
+  --input: #2a3040;
+  --ring: #5ea2ff;
+
+  --chart-1: #5ea2ff;
+  --chart-2: #4d91ff;
+  --chart-3: #ff5a66;
+  --chart-4: #9aa3b2;
+  --chart-5: #006bff;
+
+  --sidebar: #171a23;
+  --sidebar-foreground: #f4f7fb;
+  --sidebar-primary: #5ea2ff;
+  --sidebar-primary-foreground: #11131a;
+  --sidebar-accent: #1e2230;
+  --sidebar-accent-foreground: #5ea2ff;
+  --sidebar-border: #2a3040;
+  --sidebar-ring: #5ea2ff;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: 8px;
+  --radius-md: var(--radius);
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-3xl: 28px;
+  --radius-4xl: 32px;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
