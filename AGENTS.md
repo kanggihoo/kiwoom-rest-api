@@ -11,6 +11,10 @@
 
 Before architecture, feature, debugging, or refactoring work, read `CONTEXT.md` and relevant ADRs under `docs/adr/`.
 
+## Frontend instructions
+
+Before writing or modifying frontend, React, or Next.js code, read `apps/web/AGENTS.md` and follow its instructions.
+
 ## Agent skills
 
 ### Domain docs
