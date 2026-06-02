@@ -1,3 +1,4 @@
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
@@ -23,9 +24,25 @@ def make_error_response(
     details: dict[str, Any] | None = None,
     status_code: int | None = None,
 ) -> JSONResponse:
-    envelope = make_error_envelope(code=code, message=message, details=details)
+    envelope = make_error_envelope(code=code, message=message, details=_json_safe(details))
     response_status = status_code or rest_status_for_error(code)
     return JSONResponse(status_code=response_status, content=envelope.model_dump(mode="json"))
+
+
+def _json_safe(value: Any) -> Any:
+    if isinstance(value, BaseException):
+        return str(value)
+    if isinstance(value, Mapping):
+        return {str(key): _json_safe(nested_value) for key, nested_value in value.items()}
+    if isinstance(value, tuple):
+        return [_json_safe(nested_value) for nested_value in value]
+    if isinstance(value, list):
+        return [_json_safe(nested_value) for nested_value in value]
+    if isinstance(value, set):
+        return [_json_safe(nested_value) for nested_value in sorted(value, key=repr)]
+    if isinstance(value, Sequence) and not isinstance(value, str | bytes | bytearray):
+        return [_json_safe(nested_value) for nested_value in value]
+    return value
 
 
 def make_error_response_or_fallback(

@@ -9,6 +9,7 @@ from upbit_dashboard.logging_config import (
     get_log_format,
     get_log_level,
 )
+from upbit_dashboard.settings import get_settings
 
 
 def test_default_log_format_is_plain(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -99,4 +100,5 @@ def test_known_logging_level_names_are_supported(monkeypatch: pytest.MonkeyPatch
     for level_name in logging.getLevelNamesMapping():
         if isinstance(logging.getLevelName(level_name), int):
             monkeypatch.setenv("LOG_LEVEL", level_name.lower())
+            get_settings.cache_clear()
             assert get_log_level() == level_name

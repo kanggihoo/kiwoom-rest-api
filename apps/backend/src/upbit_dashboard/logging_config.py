@@ -5,6 +5,7 @@ import logging.config
 from typing import Any
 
 from upbit_dashboard.settings import (
+    BackendSettings,
     DEFAULT_LOG_FORMAT,
     DEFAULT_LOG_LEVEL,
     SUPPORTED_LOG_FORMATS,
@@ -37,17 +38,17 @@ def get_log_level(raw_value: str | None = None) -> str:
     return normalize_log_level(raw_value)
 
 
-def build_logging_config() -> dict[str, Any]:
-    log_format = get_log_format()
-    log_level = get_log_level()
+def build_logging_config(settings: BackendSettings | None = None) -> dict[str, Any]:
+    log_format = settings.log_format if settings is not None else get_log_format()
+    log_level = settings.log_level if settings is not None else get_log_level()
 
     if log_format == "rich":
         return _build_rich_config(log_level)
     return _build_plain_config(log_level)
 
 
-def configure_logging() -> None:
-    logging.config.dictConfig(build_logging_config())
+def configure_logging(settings: BackendSettings | None = None) -> None:
+    logging.config.dictConfig(build_logging_config(settings))
 
 
 def _build_plain_config(log_level: str) -> dict[str, Any]:

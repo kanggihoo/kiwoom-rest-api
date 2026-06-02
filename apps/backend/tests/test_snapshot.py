@@ -39,9 +39,9 @@ def test_snapshot_returns_empty_market_state(monkeypatch) -> None:
 def test_snapshot_returns_latest_ticker_data_with_aliases(monkeypatch) -> None:
     monkeypatch.setenv("UPBIT_WS_ENABLED", "false")
     app = create_app()
-    app.state.market_state.upsert_ticker(_ticker("KRW-BTC"))
 
     with TestClient(app) as client:
+        client.app.state.market_state.upsert_ticker(_ticker("KRW-BTC"))
         response = client.get("/api/snapshot")
 
     assert response.status_code == 200

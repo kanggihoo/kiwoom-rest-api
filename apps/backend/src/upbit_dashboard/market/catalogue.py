@@ -1,6 +1,12 @@
+import asyncio
 import re
 from collections.abc import Iterable
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+from typing import Protocol
+
+from upbit_dashboard.contracts.rest import MarketSummary
+from upbit_dashboard.upbit.rest import UpbitMarketResponse
 
 
 MARKET_CODE_PATTERN = re.compile(r"^[A-Z0-9-]+-[A-Z0-9]+$")
@@ -85,3 +91,63 @@ def parse_krw_market_code_list(
     if raw_value is None or raw_value.strip() == "":
         return default
     return normalize_krw_market_codes(raw_value.split(","))
+
+
+class MarketClient(Protocol):
+    async def list_markets(self) -> list[UpbitMarketResponse]:
+        ...
+
+
+def map_upbit_market_summary(market: UpbitMarketResponse) -> MarketSummary:
+    parsed = assert_krw_market(market.market)
+    return MarketSummary(
+        market=parsed.as_upbit_code(),
+        korean_name=market.korean_name,
+        english_name=market.english_name,
+        quote_currency=parsed.quote_currency,
+        base_currency=parsed.base_currency,
+    )
+
+
+class MarketCatalogueService:
+    def __init__(self, *, client: MarketClient, ttl_seconds: int) -> None:
+        self._client = client
+        self._ttl = timedelta(seconds=ttl_seconds)
+        self._markets: tuple[MarketSummary, ...] | None = None
+        self._fetched_at: datetime | None = None
+        self._refresh_lock = asyncio.Lock()
+
+    async def list_krw_markets(self, now: datetime | None = None) -> tuple[MarketSummary, ...]:
+        current_time = now or datetime.now(timezone.utc)
+        fresh = self._fresh(current_time)
+        if fresh is not None:
+            return fresh
+
+        async with self._refresh_lock:
+            current_time = now or datetime.now(timezone.utc)
+            fresh = self._fresh(current_time)
+            if fresh is not None:
+                return fresh
+
+            try:
+                raw_markets = await self._client.list_markets()
+            except Exception:
+                if self._markets is not None:
+                    return self._markets
+                raise
+
+            krw_markets = tuple(
+                map_upbit_market_summary(raw_market)
+                for raw_market in raw_markets
+                if is_krw_market(raw_market.market)
+            )
+            self._markets = krw_markets
+            self._fetched_at = current_time
+            return krw_markets
+
+    def _fresh(self, now: datetime) -> tuple[MarketSummary, ...] | None:
+        if self._markets is None or self._fetched_at is None:
+            return None
+        if now - self._fetched_at > self._ttl:
+            return None
+        return self._markets

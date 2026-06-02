@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import logging
+from functools import lru_cache
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import Field, ValidationInfo, field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
@@ -17,17 +18,24 @@ SUPPORTED_LOG_FORMATS = {"plain", "rich"}
 
 DEFAULT_UPBIT_WS_ENDPOINT = "wss://api.upbit.com/websocket/v1"
 DEFAULT_UPBIT_REST_MARKETS_URL = "https://api.upbit.com/v1/market/all?is_details=false"
+DEFAULT_UPBIT_REST_BASE_URL = "https://api.upbit.com"
 DEFAULT_TICKER_MARKETS = ("KRW-BTC", "KRW-ETH")
+DEFAULT_MARKET_CATALOGUE_TTL_SECONDS = 600
+DEFAULT_TICKER_MARKETS_MODE = "all_krw"
 DEFAULT_TICKET = "upbit-dashboard-phase2"
 DEFAULT_WS_FORMAT = "DEFAULT"
 INITIAL_BACKOFF_SECONDS = 1.0
 MAX_BACKOFF_SECONDS = 30.0
 SMOKE_TIMEOUT_SECONDS = 15.0
+TickerMarketsMode = Literal["all_krw", "configured"]
 
 _FLOAT_DEFAULTS = {
     "initial_backoff_seconds": INITIAL_BACKOFF_SECONDS,
     "max_backoff_seconds": MAX_BACKOFF_SECONDS,
     "smoke_timeout_seconds": SMOKE_TIMEOUT_SECONDS,
+}
+_INT_DEFAULTS = {
+    "market_catalogue_ttl_seconds": DEFAULT_MARKET_CATALOGUE_TTL_SECONDS,
 }
 
 
@@ -46,13 +54,26 @@ class BackendSettings(BaseSettings):
         DEFAULT_UPBIT_WS_ENDPOINT,
         validation_alias="UPBIT_WS_ENDPOINT",
     )
+    upbit_rest_base_url: str = Field(
+        DEFAULT_UPBIT_REST_BASE_URL,
+        validation_alias="UPBIT_REST_BASE_URL",
+    )
     upbit_rest_markets_url: str = Field(
         DEFAULT_UPBIT_REST_MARKETS_URL,
         validation_alias="UPBIT_REST_MARKETS_URL",
     )
+    market_catalogue_ttl_seconds: int = Field(
+        DEFAULT_MARKET_CATALOGUE_TTL_SECONDS,
+        gt=0,
+        validation_alias="MARKET_CATALOGUE_TTL_SECONDS",
+    )
     upbit_ticker_markets: Annotated[tuple[str, ...], NoDecode] = Field(
         DEFAULT_TICKER_MARKETS,
         validation_alias="UPBIT_TICKER_MARKETS",
+    )
+    upbit_ticker_markets_mode: TickerMarketsMode = Field(
+        DEFAULT_TICKER_MARKETS_MODE,
+        validation_alias="UPBIT_TICKER_MARKETS_MODE",
     )
     upbit_ticket: str = Field(
         DEFAULT_TICKET,
@@ -98,6 +119,13 @@ class BackendSettings(BaseSettings):
             return value
         return parse_krw_market_code_list(value, default=DEFAULT_TICKER_MARKETS)
 
+    @field_validator("upbit_ticker_markets_mode", mode="before")
+    @classmethod
+    def validate_upbit_ticker_markets_mode(cls, value: object) -> object:
+        if isinstance(value, str) and value.strip() == "":
+            return DEFAULT_TICKER_MARKETS_MODE
+        return value
+
     @field_validator(
         "initial_backoff_seconds",
         "max_backoff_seconds",
@@ -112,6 +140,17 @@ class BackendSettings(BaseSettings):
     ) -> object:
         if isinstance(value, str) and value.strip() == "":
             return _FLOAT_DEFAULTS[info.field_name]
+        return value
+
+    @field_validator("market_catalogue_ttl_seconds", mode="before")
+    @classmethod
+    def validate_optional_positive_int(
+        cls,
+        value: object,
+        info: ValidationInfo,
+    ) -> object:
+        if isinstance(value, str) and value.strip() == "":
+            return _INT_DEFAULTS[info.field_name]
         return value
 
 
@@ -136,5 +175,6 @@ def normalize_log_level(raw_value: str | None) -> str:
     return normalized
 
 
+@lru_cache
 def get_settings() -> BackendSettings:
     return BackendSettings()

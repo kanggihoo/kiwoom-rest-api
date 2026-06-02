@@ -6,12 +6,21 @@ import pytest
 from pydantic import ValidationError
 from pydantic_settings import BaseSettings
 
-from upbit_dashboard.settings import BackendSettings, DEFAULT_BACKEND_ENV_FILE
+from upbit_dashboard.settings import BackendSettings, DEFAULT_BACKEND_ENV_FILE, get_settings
 
 
 def test_backend_settings_uses_pydantic_base_settings() -> None:
     assert issubclass(BackendSettings, BaseSettings)
     assert BackendSettings.model_config["env_file"] == DEFAULT_BACKEND_ENV_FILE
+
+
+def test_get_settings_reuses_cached_settings_instance() -> None:
+    get_settings.cache_clear()
+
+    first = get_settings()
+    second = get_settings()
+
+    assert first is second
 
 
 def test_backend_settings_use_mvp_defaults() -> None:
@@ -27,6 +36,8 @@ def test_backend_settings_use_mvp_defaults() -> None:
     assert settings.initial_backoff_seconds == 1.0
     assert settings.max_backoff_seconds == 30.0
     assert settings.smoke_timeout_seconds == 15.0
+    assert settings.market_catalogue_ttl_seconds == 600
+    assert settings.upbit_ticker_markets_mode == "all_krw"
 
 
 def test_backend_settings_read_and_normalize_environment_values() -> None:
@@ -54,6 +65,8 @@ def test_backend_settings_read_and_normalize_environment_values() -> None:
     assert settings.initial_backoff_seconds == 2.5
     assert settings.max_backoff_seconds == 20.0
     assert settings.smoke_timeout_seconds == 7.0
+    assert settings.market_catalogue_ttl_seconds == 600
+    assert settings.upbit_ticker_markets_mode == "all_krw"
 
 
 def test_backend_settings_reads_env_file(
@@ -81,6 +94,23 @@ def test_backend_settings_reads_env_file(
     assert settings.upbit_ws_enabled is False
     assert settings.upbit_ticker_markets == ("KRW-XRP", "KRW-ETH")
     assert settings.log_level == "DEBUG"
+
+
+def test_backend_settings_default_to_all_krw_ticker_mode() -> None:
+    settings = BackendSettings(_env_file=None)
+
+    assert settings.upbit_ticker_markets_mode == "all_krw"
+
+
+def test_backend_settings_accept_configured_ticker_mode() -> None:
+    settings = BackendSettings(
+        UPBIT_TICKER_MARKETS_MODE="configured",
+        UPBIT_TICKER_MARKETS="KRW-BTC,KRW-ETH",
+        _env_file=None,
+    )
+
+    assert settings.upbit_ticker_markets_mode == "configured"
+    assert settings.upbit_ticker_markets == ("KRW-BTC", "KRW-ETH")
 
 
 def test_shell_environment_overrides_backend_env_file(

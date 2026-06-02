@@ -1,24 +1,17 @@
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter
 
-from upbit_dashboard.contracts.rest import (
-    MarketStateSnapshotData,
-    MarketStateSnapshotResponse,
-)
-from upbit_dashboard.state.market_state import MarketState
+from upbit_dashboard.api.dependencies import QuotationReadServiceDependency
+from upbit_dashboard.contracts.rest import MarketStateSnapshotResponse
 
-router = APIRouter()
+router = APIRouter(prefix="/snapshot", tags=["snapshot"])
 
 
-@router.get("/api/snapshot", response_model=MarketStateSnapshotResponse)
-def get_snapshot(request: Request) -> MarketStateSnapshotResponse:
-    market_state: MarketState = request.app.state.market_state
-    snapshot = market_state.snapshot()
+@router.get("", response_model=MarketStateSnapshotResponse)
+def get_snapshot(quotation_read_service: QuotationReadServiceDependency) -> MarketStateSnapshotResponse:
+    data = quotation_read_service.get_snapshot()
     return MarketStateSnapshotResponse(
-        timestamp=snapshot.generated_at,
-        data=MarketStateSnapshotData(
-            generated_at=snapshot.generated_at,
-            tickers=list(snapshot.tickers),
-        ),
+        timestamp=data.generated_at,
+        data=data,
     )
