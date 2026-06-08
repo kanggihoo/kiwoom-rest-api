@@ -1,7 +1,8 @@
 import type { MarketDashboardMockData } from "../types";
+import { DashboardIconRail } from "./dashboard-icon-rail";
 import { MarketDetailGrid } from "./market-detail-grid";
-import { MarketDiscoveryPanel } from "./market-discovery-panel";
 import { MarketTablePanel } from "./market-table-panel";
+import { PersonalInfoPanel } from "./personal-info-panel";
 import { SelectedMarketPanel } from "./selected-market-panel";
 
 type MarketDashboardShellProps = {
@@ -10,17 +11,18 @@ type MarketDashboardShellProps = {
 
 export function MarketDashboardShell({ data }: MarketDashboardShellProps) {
   return (
-    <section className="grid gap-3 px-5 py-3 xl:grid-cols-[minmax(0,74%)_minmax(360px,26%)]">
-      <div className="flex min-w-0 flex-col gap-3">
-        <SelectedMarketPanel
-          market={data.selectedMarket}
-          candles={data.candles}
-          activeCandleUnit={data.activeCandleUnit}
-        />
+    <section className="grid gap-3 px-5 py-3 xl:grid-cols-[minmax(640px,1.45fr)_minmax(420px,0.9fr)_304px_56px]">
+      <MarketTablePanel markets={data.markets} />
+      <SelectedMarketPanel
+        market={data.selectedMarket}
+        candles={data.candles}
+        activeCandleUnit={data.activeCandleUnit}
+      />
+      <PersonalInfoPanel markets={data.markets} />
+      <DashboardIconRail />
+      <div className="xl:col-span-2">
         <MarketDetailGrid orderbook={data.orderbook} trades={data.trades} />
-        <MarketTablePanel markets={data.markets} />
       </div>
-      <MarketDiscoveryPanel markets={data.markets} activeCategory={data.activeCategory} />
     </section>
   );
 }

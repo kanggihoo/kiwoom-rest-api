@@ -22,7 +22,9 @@ Tooltip.displayName = "Tooltip";
 const TooltipTrigger = React.forwardRef<
   HTMLSpanElement,
   React.HTMLAttributes<HTMLSpanElement> & { asChild?: boolean }
->(({ className, ...props }, ref) => {
+>(({ className, asChild, ...props }, ref) => {
+  void asChild;
+
   return <span ref={ref} className={cn("group inline-flex", className)} {...props} />;
 });
 TooltipTrigger.displayName = "TooltipTrigger";

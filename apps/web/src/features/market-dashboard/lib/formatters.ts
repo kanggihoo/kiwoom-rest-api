@@ -7,6 +7,11 @@ const decimalPriceFormatter = new Intl.NumberFormat("ko-KR", {
   maximumFractionDigits: 4,
 });
 
+const marketVolumeFormatter = new Intl.NumberFormat("ko-KR", {
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 3,
+});
+
 export function formatKrwPrice(value: number): string {
   if (Math.abs(value) >= 1_000) {
     return krwFormatter.format(value);
@@ -31,4 +36,8 @@ export function formatCompactKoreanAmount(value: number): string {
 
 export function formatMarketSize(value: number): string {
   return value.toFixed(4);
+}
+
+export function formatMarketVolume(value: number): string {
+  return marketVolumeFormatter.format(value);
 }

@@ -16,7 +16,7 @@ export function OrderbookPanel({ rows }: OrderbookPanelProps) {
       <CardContent className="grid grid-cols-2 gap-0 p-0">
         <div className="border-r border-border">
           <div className="grid grid-cols-3 px-4 py-2 text-[12px] font-semibold text-muted-foreground">
-            <span>수량(BTC)</span>
+            <span>수량(ETH)</span>
             <span className="text-right">매수호가</span>
             <span className="text-right">누적</span>
           </div>
@@ -42,7 +42,7 @@ export function OrderbookPanel({ rows }: OrderbookPanelProps) {
           <div className="grid grid-cols-3 px-4 py-2 text-[12px] font-semibold text-muted-foreground">
             <span className="text-right">누적</span>
             <span className="text-right">매도호가</span>
-            <span className="text-right">수량(BTC)</span>
+            <span className="text-right">수량(ETH)</span>
           </div>
           {rows
             .filter((row) => row.side === "ask")

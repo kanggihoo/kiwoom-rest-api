@@ -13,3 +13,9 @@ body {
     system-ui, sans-serif;
   font-feature-settings: "tnum";
 }
+
+[data-icon] {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}

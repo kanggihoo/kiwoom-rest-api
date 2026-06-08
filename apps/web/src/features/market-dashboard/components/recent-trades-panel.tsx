@@ -20,7 +20,7 @@ export function RecentTradesPanel({ trades }: RecentTradesPanelProps) {
             <TableRow>
               <TableHead className="h-9 px-4 text-[12px]">시간</TableHead>
               <TableHead className="h-9 px-4 text-right text-[12px]">체결가(KRW)</TableHead>
-              <TableHead className="h-9 px-4 text-right text-[12px]">수량(BTC)</TableHead>
+              <TableHead className="h-9 px-4 text-right text-[12px]">수량(ETH)</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

@@ -1,3 +1,7 @@
+import { Settings } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+
 import type { IndexStripItem } from "../types";
 import { formatChangeRate } from "../lib/formatters";
 import { Sparkline } from "./sparkline";
@@ -7,13 +11,15 @@ type IndexStripProps = {
 };
 
 export function IndexStrip({ indexes }: IndexStripProps) {
+  const visibleIndexes = indexes.slice(0, 5);
+
   return (
-    <section className="border-b border-border bg-background px-5 py-2" aria-label="Market indexes">
-      <div className="grid grid-cols-6 overflow-hidden rounded-md border border-border bg-card">
-        {indexes.map((item) => (
+    <section className="border-b border-border bg-background px-5 py-3" aria-label="Market indexes">
+      <div className="grid grid-cols-[repeat(5,minmax(150px,1fr))_64px] overflow-hidden rounded-md border border-border bg-card">
+        {visibleIndexes.map((item) => (
           <article
             key={item.label}
-            className="grid min-h-[76px] grid-cols-[1fr_auto] items-center gap-3 border-r border-border px-5 last:border-r-0"
+            className="grid min-h-[76px] grid-cols-[1fr_auto] items-center gap-3 border-r border-border px-5"
           >
             <div className="flex flex-col gap-1">
               <span className="text-[12px] font-semibold text-muted-foreground">{item.label}</span>
@@ -35,6 +41,11 @@ export function IndexStrip({ indexes }: IndexStripProps) {
             />
           </article>
         ))}
+        <div className="flex items-center justify-center">
+          <Button variant="ghost" size="icon" aria-label="Index strip settings">
+            <Settings data-icon="icon" />
+          </Button>
+        </div>
       </div>
     </section>
   );

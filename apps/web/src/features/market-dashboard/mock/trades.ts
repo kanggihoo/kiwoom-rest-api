@@ -1,14 +1,14 @@
 import type { TradeRow } from "../types";
 
 export const mockTrades: TradeRow[] = [
-  { time: "09:41:23", price: 103_500_000, size: 0.0312, side: "rise" },
-  { time: "09:41:22", price: 103_501_000, size: 0.052, side: "rise" },
-  { time: "09:41:21", price: 103_500_000, size: 0.0105, side: "rise" },
-  { time: "09:41:20", price: 103_499_000, size: 0.025, side: "fall" },
-  { time: "09:41:19", price: 103_500_000, size: 0.002, side: "rise" },
-  { time: "09:41:18", price: 103_501_000, size: 0.113, side: "rise" },
-  { time: "09:41:17", price: 103_500_000, size: 0.045, side: "rise" },
-  { time: "09:41:16", price: 103_501_000, size: 0.008, side: "rise" },
-  { time: "09:41:15", price: 103_500_000, size: 0.1201, side: "rise" },
-  { time: "09:41:14", price: 103_499_000, size: 0.03, side: "fall" },
+  { time: "16:45:12", price: 2_903_000, size: 1.2312, side: "fall" },
+  { time: "16:45:11", price: 2_904_000, size: 0.852, side: "rise" },
+  { time: "16:45:10", price: 2_903_000, size: 2.0105, side: "fall" },
+  { time: "16:45:09", price: 2_902_000, size: 1.425, side: "fall" },
+  { time: "16:45:08", price: 2_903_000, size: 0.902, side: "rise" },
+  { time: "16:45:07", price: 2_904_000, size: 3.113, side: "rise" },
+  { time: "16:45:06", price: 2_903_000, size: 1.045, side: "fall" },
+  { time: "16:45:05", price: 2_904_000, size: 0.808, side: "rise" },
+  { time: "16:45:04", price: 2_903_000, size: 2.1201, side: "fall" },
+  { time: "16:45:03", price: 2_902_000, size: 1.03, side: "fall" },
 ];

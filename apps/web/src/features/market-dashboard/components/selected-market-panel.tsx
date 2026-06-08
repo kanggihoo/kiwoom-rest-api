@@ -1,15 +1,9 @@
-import { Activity, SlidersHorizontal } from "lucide-react";
+import { Info } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import type { CandlePoint, CandleUnit, SelectedMarketSummary } from "../types";
-import { CandleUnitToggle } from "./candle-unit-toggle";
 import { LightweightCandleChart } from "./lightweight-candle-chart";
 import { SelectedMarketHeader } from "./selected-market-header";
 
@@ -25,26 +19,58 @@ export function SelectedMarketPanel({
   activeCandleUnit,
 }: SelectedMarketPanelProps) {
   return (
-    <Card className="overflow-hidden rounded-md border-border bg-card p-0 shadow-none">
+    <Card className="flex h-full min-h-[680px] flex-col overflow-hidden rounded-md border-border bg-card p-0 shadow-none">
       <SelectedMarketHeader market={market} />
-      <div className="flex min-h-[48px] items-center justify-between gap-4 px-5">
-        <CandleUnitToggle value={activeCandleUnit} />
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm">
-            <Activity data-icon="inline-start" />
-            기본차트
-          </Button>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="차트 지표">
-                <SlidersHorizontal data-icon="icon" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>차트 지표</TooltipContent>
-          </Tooltip>
+      <div className="flex min-h-[52px] items-center justify-between gap-4 border-b border-border px-5">
+        <Tabs value={activeCandleUnit}>
+          <TabsList className="h-[52px] gap-6 bg-transparent p-0">
+            <TabsTrigger
+              value="1d"
+              className="h-[52px] rounded-none border-b-2 border-transparent px-0 data-[active=true]:border-primary data-[active=true]:bg-transparent data-[active=true]:text-primary"
+            >
+              1일
+            </TabsTrigger>
+            <TabsTrigger
+              value="1w"
+              className="h-[52px] rounded-none border-b-2 border-transparent px-0 data-[active=true]:border-primary data-[active=true]:bg-transparent data-[active=true]:text-primary"
+            >
+              1주
+            </TabsTrigger>
+            <TabsTrigger
+              value="1m"
+              className="h-[52px] rounded-none border-b-2 border-transparent px-0 data-[active=true]:border-primary data-[active=true]:bg-transparent data-[active=true]:text-primary"
+            >
+              1개월
+            </TabsTrigger>
+            <TabsTrigger
+              value="5m"
+              className="h-[52px] rounded-none border-b-2 border-transparent px-0 data-[active=true]:border-primary data-[active=true]:bg-transparent data-[active=true]:text-primary"
+            >
+              3개월
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+      <div className="min-h-0 flex-1">
+        <LightweightCandleChart candles={candles} />
+      </div>
+      <div className="border-t border-border px-5 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 text-[12px] font-semibold text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <span>차트 데이터는 참고용으로 실제와 다를 수 있습니다.</span>
+            <span>기준: 2025-06-02 16:45:12 (KST)</span>
+          </div>
+          <div className="flex items-center gap-5 text-foreground">
+            <span className="flex items-center gap-1">
+              지표 없음
+              <Info data-icon="inline-end" />
+            </span>
+            <span>%</span>
+            <span>로그</span>
+            <span>UTC+9</span>
+          </div>
         </div>
       </div>
-      <LightweightCandleChart candles={candles} />
     </Card>
   );
 }
